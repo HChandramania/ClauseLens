@@ -2,7 +2,6 @@
 __pycache__/
 *.py[cod]
 .venv/
-.venv-3.13/
 venv/
 *.egg-info/
 build/
