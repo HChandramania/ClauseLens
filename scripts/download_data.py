@@ -21,6 +21,8 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
+import re
 import shutil
 import sys
 import urllib.request
@@ -85,6 +87,13 @@ def _safe_parts(name: str) -> tuple[str, ...]:
     return tuple(part for part in name.split("/") if part not in ("", "."))
 
 
+def _platform_part(part: str) -> str:
+    if os.name != "nt":
+        return part
+    cleaned = re.sub(r'[<>:"|?*\x00-\x1f]', "_", part)
+    return cleaned.rstrip(" .") or "_"
+
+
 def safe_extract(archive: zipfile.ZipFile, destination: Path) -> int:
     """Extract members under ``destination``; returns the file count."""
     destination = destination.resolve()
@@ -93,7 +102,7 @@ def safe_extract(archive: zipfile.ZipFile, destination: Path) -> int:
         parts = _safe_parts(member.filename)
         if not parts:
             continue
-        target = destination.joinpath(*parts)
+        target = destination.joinpath(*(_platform_part(part) for part in parts))
         if not target.resolve().is_relative_to(destination):
             raise RuntimeError(f"refusing to extract outside data dir: {member.filename}")
         if member.is_dir():

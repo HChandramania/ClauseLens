@@ -3,7 +3,7 @@ UV := uv
 
 .DEFAULT_GOAL := help
 
-.PHONY: help setup data verify negatives test lint eval loop app cli clean
+.PHONY: help setup data verify negatives test lint eval loop app cli dense-index clean
 
 help:
 	@echo "setup     create .venv (Python 3.12) and install core deps"
@@ -23,6 +23,7 @@ help:
 	@echo "loop      run the self-improvement loop"
 	@echo "app       launch the Streamlit app"
 	@echo "cli       run the CLI (ARGS='...' to pass arguments)"
+	@echo "dense-index  build or reuse dense embeddings: make dense-index CONFIG=configs/serve.yaml"
 
 setup:
 	$(UV) venv --python 3.12
@@ -76,6 +77,10 @@ app:
 
 cli:
 	$(PY) -m app.cli $(ARGS)
+
+dense-index:
+	@test -n "$(CONFIG)" || (echo "CONFIG is required, e.g. CONFIG=configs/serve.yaml"; exit 1)
+	$(PY) scripts/build_dense_index.py --config $(CONFIG)
 
 clean:
 	rm -rf artifacts .pytest_cache .ruff_cache
